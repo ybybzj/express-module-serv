@@ -8,6 +8,10 @@
     "uglify": "uglifyjs client/promise.js client/loader.js -o loader.min.js -c -m",
     "prepublish": "npm run uglify"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ybybzj/express-module-serv.git"
+  },
   "keywords": [
     "modular",
     "AMD",
@@ -16,7 +20,7 @@
   "author": "jackzj",
   "license": "MIT",
   "dependencies": {
-    "deps-stream": "^2.0.0"
+    "deps-stream": "^2.0.1"
   },
   "devDependencies": {
     "uglify-js": "^2.6.1"
