@@ -95,6 +95,22 @@
       }
     };
   }
+  //setup predefined modules
+  define('addStyle', function(){
+  return function addStyle(styleStr){
+    var head = document.getElementsByTagName('head')[0],
+      style = document.createElement("style");
+
+    // Add a media (and/or media query) here if you'd like!
+    // style.setAttribute("media", "screen")
+    // style.setAttribute("media", "only screen and (max-width : 1024px)")
+
+    // WebKit hack :(
+    style.appendChild(document.createTextNode(styleStr));
+
+    head.appendChild(style);
+  };
+});
   //try to find data-main attribute value as entries
   (function(){
     var scripts = document.getElementsByTagName('script'),
