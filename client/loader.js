@@ -8,8 +8,7 @@
   var modCache = {};
   var loadCache = {};
   var baseUrl = w.__loaderBase__;
-  //legacy support
-  var config = {};
+  
   function define(id, deps, factory) {
     var mod = modCache[id],
       factoryParamNames, requireMod,
@@ -36,10 +35,7 @@
       } else {
         mod.cache = factory.apply(w, deps.map(requireMod));
       }
-      //legacy support
-      if(w.m.config && Object(mod.cache) === mod.cache && mod.cache.ctrl == null){
-        mod.cache.ctrl = config[id] || {};
-      }
+      
     } catch (err) {
       errHandler(err);
     }
@@ -84,17 +80,22 @@
   define.amd = true;
   w.define = define;
   w.requireAsync = loadModule;
-  //legacy support
-  if(Object(w.m) === w.m){
-    w.m.define = define;
-    w.m.load = loadModule;
-    w.m.config = function(options) {
-      // if (options.baseUrl) baseUrl = options.baseUrl;
-      if(options.ctrl != null){
-        config = options.ctrl;
-      }
+  //setup predefined module
+  define('addStyle', function(){
+    return function addStyle(styleStr){
+      var head = document.getElementsByTagName('head')[0],
+        style = document.createElement("style");
+
+      // Add a media (and/or media query) here if you'd like!
+      // style.setAttribute("media", "screen")
+      // style.setAttribute("media", "only screen and (max-width : 1024px)")
+
+      // WebKit hack :(
+      style.appendChild(document.createTextNode(styleStr));
+
+      head.appendChild(style);
     };
-  }
+  });
   //try to find data-main attribute value as entries
   (function(){
     var scripts = document.getElementsByTagName('script'),
