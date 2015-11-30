@@ -1,0 +1,24 @@
+{
+  "name": "express-module-serv",
+  "version": "1.0.1",
+  "description": "An express app booting module providing backend support for frontend modular system including AMD, or CMD",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "uglify": "uglifyjs client/promise.js client/loader.js -o loader.min.js -c -m",
+    "prepublish": "npm run uglify"
+  },
+  "keywords": [
+    "modular",
+    "AMD",
+    "commonjs"
+  ],
+  "author": "jackzj",
+  "license": "MIT",
+  "dependencies": {
+    "deps-stream": "^2.0.0"
+  },
+  "devDependencies": {
+    "uglify-js": "^2.6.1"
+  }
+}
