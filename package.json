@@ -1,7 +1,7 @@
 {
   "name": "express-module-serv",
   "version": "1.0.4",
-  "description": "An express app booting module providing backend support for frontend modular system including AMD, or CMD",
+  "description": "An express app booting module that sets up a frontend modular system service which supports AMD, CMD and UMD standards",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
