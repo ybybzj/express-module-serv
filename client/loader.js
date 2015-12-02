@@ -1,10 +1,4 @@
 // (function(w, Promise) {
-  // if (typeof w.__loaderPath__ === 'undefined'){
-  //   throw new Error('w.__loaderPath__ is undefined!');
-  // }
-  // if (typeof w.__moduleRoute__ === 'undefined'){
-  //   throw new Error('w.__moduleRoute__ is undefined!');
-  // }
   if (typeof Promise === 'undefined') {
     throw new Error('Promise is undefined!');
   }
@@ -36,7 +30,7 @@
     // console.log('pagePath:', pagePath);
     // console.log('loaderPath:', loaderPath);
     baseUrl = relative(pagePath, loaderPath).replace(__loaderPath__, __moduleRoute__);
-    console.log('baseUrl:', baseUrl);
+    // console.log('baseUrl:', baseUrl);
   })();
 
   
