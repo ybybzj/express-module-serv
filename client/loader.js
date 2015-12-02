@@ -143,7 +143,7 @@
       head.appendChild(style);
     };
   });
-  console.log('dataMain:',dataMain);
+  // console.log('dataMain:',dataMain);
   if(dataMain){
     loadModule(dataMain);
   }
