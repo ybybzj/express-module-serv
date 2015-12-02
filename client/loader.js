@@ -260,6 +260,7 @@
     return parser.pathname;
   }
   function relative(from, to){
+    var isSlashTail = from[from.length - 1] === '/';
     var fromParts = from.split(/[\/\\\s]+/);
     var toParts = to.split(/[\/\\\s]+/);
     var i = 0 , l = Math.min(fromParts.length, toParts.length), p = i;
@@ -270,6 +271,9 @@
       p = i;
     }
     fromParts = fromParts.slice(p + 1).filter(Boolean).map(function(){return '..';});
+    if(!isSlashTail){
+      fromParts.pop();
+    }
     toParts = toParts.slice(p + 1);
     return (fromParts.length ? fromParts.join('/') : '.')  + '/' + toParts.join('/')
   }
