@@ -1,14 +1,38 @@
 // (function(w, Promise) {
-  if (typeof w.__loaderBase__ === 'undefined'){
-    throw new Error('w.__loaderBase__ is undefined!');
-  }
   if (typeof Promise === 'undefined') {
     throw new Error('Promise is undefined!');
   }
   var modCache = {};
   var loadCache = {};
-  var baseUrl = w.__loaderBase__;
-  
+
+  var dataMain, baseUrl;
+  //prepare baseUrl according to the entry page url, and try to find data-main attribute value as entries
+  (function(){
+    var pagePath = w.location.pathname, loaderPath;
+    var scripts = document.getElementsByTagName('script'),
+      i, l = scripts.length, loaderScript, s;
+    for(i = l-1; i >=0 ; i--){
+      s = scripts[i];
+      if(s.src.indexOf(__loaderUrlPath__) !== -1){
+        loaderScript = s;
+        break;
+      }
+    }
+    if(!loaderScript){
+      throw new Error('loader script is not found!');
+    }
+    //get dataMain
+    dataMain = loaderScript.getAttribute('data-main');
+    if(dataMain){
+      dataMain = dataMain.split(',').filter(Boolean).map(function(m){return m.trim();});
+    }
+    //prepare baseUrl
+    loaderPath = getUrlPathname(loaderScript.src);
+    // console.log('pagePath:', pagePath);
+    // console.log('loaderPath:', loaderPath);
+    baseUrl = relative(pagePath, loaderPath).replace(__loaderPath__, __moduleRoute__);
+    console.log('baseUrl:', baseUrl);
+  })();
   function define(id, deps, factory) {
     var mod = modCache[id],
       factoryParamNames, requireMod,
@@ -80,7 +104,7 @@
   define.amd = true;
   w.define = define;
   w.requireAsync = loadModule;
-  //setup predefined module
+  //setup predefined modules
   define('addStyle', function(){
     return function addStyle(styleStr){
       var head = document.getElementsByTagName('head')[0],
@@ -96,23 +120,9 @@
       head.appendChild(style);
     };
   });
-  //try to find data-main attribute value as entries
-  (function(){
-    var scripts = document.getElementsByTagName('script'),
-      i, l = scripts.length, s, dataMain;
-    for(i = l-1; i >=0 ; i--){
-      s = scripts[i];
-      dataMain = s.getAttribute('data-main');
-      if(dataMain){
-        dataMain = dataMain.split(',').filter(Boolean).map(function(m){return m.trim();});
-        break;
-      }
-    }
-    if(dataMain){
-      loadModule(dataMain);
-    }
-  })();
-      
+  if(dataMain){
+    loadModule(dataMain);
+  }
   //helpers
   function resolveDepModule(name, modCache, depName) {
     var parentBase, part, parts, _i, _len, dname, dmod;
@@ -219,5 +229,24 @@
     var result = fnStr.slice(fnStr.indexOf('(') + 1, fnStr.indexOf(')')).match(ARGUMENT_NAMES);
     if (result === null) result = [];
     return result;
+  }
+  function getUrlPathname(url){
+    var parser = document.createElement('a');
+    parser.href = url;
+    return parser.pathname;
+  }
+  function relative(from, to){
+    var fromParts = from.split(/[\/\\\s]+/);
+    var toParts = to.split(/[\/\\\s]+/);
+    var i = 0 , l = Math.min(fromParts.length, toParts.length), p = i;
+    for(;i<l;i++){
+      if(fromParts[i] !== toParts[i]){
+        break;
+      }
+      p = i;
+    }
+    fromParts = fromParts.slice(p + 1).filter(Boolean).map(function(){return '..';});
+    toParts = toParts.slice(p + 1);
+    return (fromParts.length ? fromParts.join('/') : '.')  + '/' + toParts.join('/')
   }
 // })(window, window.Promise);

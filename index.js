@@ -1,4 +1,5 @@
-var createDepStreamer = require('deps-stream');
+var createDepsStreamer = require('deps-stream');
+
 var transformers = require('./lib/transformers');
 var resolver = require('./lib/resolver');
 var depsStreamMiddleware = require('./lib/depsStreamMiddleware');
@@ -9,7 +10,7 @@ module.exports = function(app, options) {
     loaderPath = options.loaderPath || '/mloader.js',
     pathSettings = options.pathSettings;
   // pathSettings.base = pUtil.resolve(app.get('$boot_dir'), pathSettings.base);
-  var streamMaker = createDepStreamer({
+  var streamMaker = createDepsStreamer({
     transformers: [
       transformers.addComma,
       transformers.wrapCMD(pathSettings),
