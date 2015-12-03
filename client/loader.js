@@ -60,7 +60,9 @@
         factory.call(w, requireMod, module, exports);
         mod.cache = module.exports;
       } else {
-        mod.cache = factory.apply(w, deps.map(requireMod));
+        mod.cache = factory.apply(w, deps.map(function(depName){
+          return depName === 'require' ? requireMod : requireMod(depName);
+        }));
       }
       //legacy support
       if(w.m.config && Object(mod.cache) === mod.cache && mod.cache.ctrl == null){
