@@ -66,3 +66,18 @@ module.exports = function add(a, b){
 ```
 
 Dependency identifier can be absolute or relative to the dependent module, and will be resolved referring to `pathSettings`. 
+
+
+
+The loader script in the page exposes these global methods:
+#### `define`
+
+(id, deps, factory) -> module
+
+for define a amd module
+
+#### `requireAsync`
+
+(deps) -> [Promise]
+
+require dependencies asynchronously 
