@@ -49,3 +49,20 @@ Then in html, you can import the loader script like this,
 ```
 `app` stands for a entry module name, and that module is located in the `base`(__dirname + '/scripts') directory.
 This module will be executed after `mloader.js` is loaded.
+
+Both AMD or CommonJS module format are supported.  For example, a js file with a filename "add.js" and located in  __dirname + '/scripts/util' could be written like,
+```js
+//AMD module, must pass in a valid module name according to its filepath
+define('util/add', function(){
+  return function add(a, b){
+    return a+b;
+  };
+});
+
+//or CommonJS
+module.exports = function add(a, b){
+  return a + b;
+};
+```
+
+Dependency identifier can be absolute or relative to the dependent module, and will be retrieved by `pathSettings`. 
