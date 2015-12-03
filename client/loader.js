@@ -1,7 +1,4 @@
-// (function(w, Promise) {
-  if (typeof Promise === 'undefined') {
-    throw new Error('Promise is undefined!');
-  }
+
   var modCache = {};
   var loadCache = {};
 
@@ -31,7 +28,7 @@
     // console.log('pagePath:', pagePath);
     // console.log('loaderPath:', loaderPath);
     baseUrl = relative(pagePath, loaderPath).replace(__loaderPath__, __moduleRoute__);
-    console.log('baseUrl:', baseUrl);
+    // console.log('baseUrl:', baseUrl);
   })();
   function define(id, deps, factory) {
     var mod = modCache[id],
@@ -57,7 +54,9 @@
         factory.call(w, requireMod, module, exports);
         mod.cache = module.exports;
       } else {
-        mod.cache = factory.apply(w, deps.map(requireMod));
+        mod.cache = factory.apply(w, deps.map(function(depName){
+          return depName === 'require' ? requireMod : requireMod(depName);
+        }));
       }
       
     } catch (err) {
@@ -253,4 +252,3 @@
     toParts = toParts.slice(p + 1);
     return (fromParts.length ? fromParts.join('/') : '.')  + '/' + toParts.join('/')
   }
-// })(window, window.Promise);
