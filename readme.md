@@ -65,4 +65,4 @@ module.exports = function add(a, b){
 };
 ```
 
-Dependency identifier can be absolute or relative to the dependent module, and will be retrieved by `pathSettings`. 
+Dependency identifier can be absolute or relative to the dependent module, and will be resolved referring to `pathSettings`. 
