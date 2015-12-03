@@ -304,3 +304,4 @@ if (typeof Promise !== 'function') {
     return Promise;
   })();
 }
+w.Promise = Promise;
