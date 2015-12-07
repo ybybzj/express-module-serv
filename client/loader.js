@@ -4,10 +4,10 @@
   }
   var modCache = {};
   var loadCache = {};
-  var dataMain, baseUrl;
+  var dataMain, moduleUrl;
   //prepare baseUrl according to the entry page url, and try to find data-main attribute value as entries
   (function(){
-    var pagePath = w.location.pathname, loaderPath;
+    var /*pagePath = w.location.pathname,*/ loaderPath;
     var scripts = document.getElementsByTagName('script'),
       i, l = scripts.length, loaderScript, s;
     for(i = l-1; i >=0 ; i--){
@@ -29,7 +29,8 @@
     loaderPath = getUrlPathname(loaderScript.src);
     // console.log('pagePath:', pagePath);
     // console.log('loaderPath:', loaderPath);
-    baseUrl = relative(pagePath, loaderPath).replace(__loaderPath__, __moduleRoute__);
+    // baseUrl = relative(pagePath, loaderPath).replace(__loaderPath__, '');
+    moduleUrl = loaderPath.replace(__loaderPath__, __moduleRoute__);
     // console.log('baseUrl:', baseUrl);
   })();
 
@@ -207,7 +208,7 @@
     var loadedMods = Object.keys(loadCache).filter(function(k) {
       return loadCache[k] === 1;
     });
-    return baseUrl + '?m=' + modNames.join(',') + (loadedMods.length ? ('&l=' + loadedMods.join(',')) : '');
+    return moduleUrl + '?m=' + modNames.join(',') + (loadedMods.length ? ('&l=' + loadedMods.join(',')) : '');
   }
 
   function errHandler(err) {
@@ -255,22 +256,22 @@
     parser.href = url;
     return parser.pathname;
   }
-  function relative(from, to){
-    var isSlashTail = from[from.length - 1] === '/';
-    var fromParts = from.split(/[\/\\\s]+/);
-    var toParts = to.split(/[\/\\\s]+/);
-    var i = 0 , l = Math.min(fromParts.length, toParts.length), p = i;
-    for(;i<l;i++){
-      if(fromParts[i] !== toParts[i]){
-        break;
-      }
-      p = i;
-    }
-    fromParts = fromParts.slice(p + 1).filter(Boolean).map(function(){return '..';});
-    if(!isSlashTail){
-      fromParts.pop();
-    }
-    toParts = toParts.slice(p + 1);
-    return (fromParts.length ? fromParts.join('/') : '.')  + '/' + toParts.join('/')
-  }
+  // function relative(from, to){
+  //   var isSlashTail = from[from.length - 1] === '/';
+  //   var fromParts = from.split(/[\/\\\s]+/);
+  //   var toParts = to.split(/[\/\\\s]+/);
+  //   var i = 0 , l = Math.min(fromParts.length, toParts.length), p = i;
+  //   for(;i<l;i++){
+  //     if(fromParts[i] !== toParts[i]){
+  //       break;
+  //     }
+  //     p = i;
+  //   }
+  //   fromParts = fromParts.slice(p + 1).filter(Boolean).map(function(){return '..';});
+  //   if(!isSlashTail){
+  //     fromParts.pop();
+  //   }
+  //   toParts = toParts.slice(p + 1);
+  //   return (fromParts.length ? fromParts.join('/') : '.')  + '/' + toParts.join('/')
+  // }
 // })(window, window.Promise);
