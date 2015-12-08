@@ -8,13 +8,14 @@ var scriptsMiddleware = require('./lib/scriptsMiddleware');
 module.exports = function(app, options) {
   var routePath = options.routePath || '/m',
     loaderPath = options.loaderPath || '/mloader.js',
-    pathSettings = options.pathSettings;
+    pathSettings = options.pathSettings,
+    transformerSettings = options.transformerSettings;
   // pathSettings.base = pUtil.resolve(app.get('$boot_dir'), pathSettings.base);
   var streamMaker = createDepsStreamer({
     transformers: [
       transformers.addComma,
-      transformers.wrapCMD(pathSettings),
-      transformers.wrapCSS(pathSettings)
+      transformers.wrapCMD(pathSettings, transformerSettings && transformerSettings.cmdWrapper),
+      transformers.wrapCSS(pathSettings, transformerSettings && transformerSettings.cssWrapper)
     ],
     depResolver: resolver(pathSettings)
       // resolveDepsCache: resolveCache,
