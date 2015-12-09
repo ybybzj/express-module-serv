@@ -4,7 +4,18 @@
   }
   var modCache = {};
   var loadCache = {};
-  var dataMain, moduleUrl;
+  var dataMain, baseUrl, moduleUrl;
+  var parseUri = (function(){
+    var keys = ["source", "protocol", "authority", "userInfo", "user", "password", "host", "port", "relative", "pathname", "directory", "file", "query", "anchor"],
+      parser = /^(?:([^:\/?#]+):)?(?:\/\/((?:(([^:@]*)(?::([^:@]*))?)?@)?([^:\/?#]*)(?::(\d*))?))?((((?:[^?#\/]*\/)*)([^?#]*))(?:\?([^#]*))?(?:#(.*))?)/;
+    return function _parseUri(str){
+      var m = parser.exec(str),
+        uri = {},
+        i = 14;
+      while (i--) uri[keys[i]] = m[i] || "";
+      return uri;
+    };
+  })();
   //prepare baseUrl according to the entry page url, and try to find data-main attribute value as entries
   (function(){
     var /*pagePath = w.location.pathname,*/ loaderPath;
@@ -29,7 +40,7 @@
     loaderPath = getUrlPathname(loaderScript.src);
     // console.log('pagePath:', pagePath);
     // console.log('loaderPath:', loaderPath);
-    // baseUrl = relative(pagePath, loaderPath).replace(__loaderPath__, '');
+    baseUrl = loaderPath.replace(__loaderPath__, '');
     moduleUrl = loaderPath.replace(__loaderPath__, __moduleRoute__);
     // console.log('baseUrl:', baseUrl);
   })();
@@ -124,8 +135,16 @@
       }
     };
   }
+  var resourceUrlReg = /(url\(\s*['"]?)([^)'"]+)(['"]?\s*\))/g;
   //setup predefined modules
   define('addStyle', function(){
+    function fixResourceUrl(content){
+      return content.replace(resourceUrlReg, _fixUrl);
+    }
+    function _fixUrl(m, open, url, close){
+      if(!isRelativeUrl(url)) return m;
+      return open+baseUrl + '/' + url + close;
+    }
     return function addStyle(styleStr){
       var head = document.getElementsByTagName('head')[0],
         style = document.createElement("style");
@@ -135,7 +154,7 @@
       // style.setAttribute("media", "only screen and (max-width : 1024px)")
 
       // WebKit hack :(
-      style.appendChild(document.createTextNode(styleStr));
+      style.appendChild(document.createTextNode(fixResourceUrl(styleStr)));
 
       head.appendChild(style);
     };
@@ -252,9 +271,17 @@
     return result;
   }
   function getUrlPathname(url){
-    var parser = document.createElement('a');
-    parser.href = url;
-    return parser.pathname;
+    return parseUri(url).pathname;
+  }
+
+
+  function isRelativeUrl(url){
+    var parsed = parseUri(url);
+    return !(
+        (url.indexOf('/') === 0) ||
+        (parsed.protocol === 'data') ||
+        (parsed.host)
+      );
   }
   // function relative(from, to){
   //   var isSlashTail = from[from.length - 1] === '/';
@@ -274,4 +301,7 @@
   //   toParts = toParts.slice(p + 1);
   //   return (fromParts.length ? fromParts.join('/') : '.')  + '/' + toParts.join('/')
   // }
+  
+
+
 // })(window, window.Promise);
