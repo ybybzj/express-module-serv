@@ -40,7 +40,7 @@
     loaderPath = getUrlPathname(loaderScript.src);
     // console.log('pagePath:', pagePath);
     // console.log('loaderPath:', loaderPath);
-    baseUrl = loaderPath.replace(__loaderPath__, '');
+    baseUrl = loaderPath.replace(__loaderUrlPath__, '');
     moduleUrl = loaderPath.replace(__loaderPath__, __moduleRoute__);
     // console.log('baseUrl:', baseUrl);
   })();
