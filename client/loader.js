@@ -45,7 +45,7 @@
     // console.log('baseUrl:', baseUrl);
   })();
 
-  
+
   //legacy support
   var config = {};
   function define(id, deps, factory) {
@@ -57,6 +57,7 @@
       return mod.cache;
     }
     mod = {};
+    modCache[id] = mod;
     if (typeof deps === 'function') {
       factory = deps;
       deps = [];
@@ -77,13 +78,12 @@
         }));
       }
       //legacy support
-      if(w.m.config && Object(mod.cache) === mod.cache && mod.cache.ctrl == null){
+      if(w.m && w.m.config && Object(mod.cache) === mod.cache && mod.cache.ctrl == null){
         mod.cache.ctrl = config[id] || {};
       }
     } catch (err) {
       errHandler(err);
     }
-    modCache[id] = mod;
   }
   function loadModule(modNames) {
     var isArray = Array.isArray(modNames), unloadedModNames, modLen, loadPromise, loadJSPromise;
@@ -225,7 +225,7 @@
 
   function makeModRequestUrl(modNames) {
     var loadedMods = Object.keys(loadCache).filter(function(k) {
-      return loadCache[k] === 1;
+      return modCache[k] != null;
     });
     return moduleUrl + '?m=' + modNames.join(',') + (loadedMods.length ? ('&l=' + loadedMods.join(',')) : '');
   }
@@ -301,7 +301,7 @@
   //   toParts = toParts.slice(p + 1);
   //   return (fromParts.length ? fromParts.join('/') : '.')  + '/' + toParts.join('/')
   // }
-  
 
 
 // })(window, window.Promise);
+
