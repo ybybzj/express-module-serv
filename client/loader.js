@@ -1,7 +1,18 @@
 
   var modCache = {};
   var loadCache = {};
-  var dataMain, moduleUrl;
+  var dataMain, baseUrl, moduleUrl;
+  var parseUri = (function(){
+    var keys = ["source", "protocol", "authority", "userInfo", "user", "password", "host", "port", "relative", "pathname", "directory", "file", "query", "anchor"],
+      parser = /^(?:([^:\/?#]+):)?(?:\/\/((?:(([^:@]*)(?::([^:@]*))?)?@)?([^:\/?#]*)(?::(\d*))?))?((((?:[^?#\/]*\/)*)([^?#]*))(?:\?([^#]*))?(?:#(.*))?)/;
+    return function _parseUri(str){
+      var m = parser.exec(str),
+        uri = {},
+        i = 14;
+      while (i--) uri[keys[i]] = m[i] || "";
+      return uri;
+    };
+  })();
   //prepare baseUrl according to the entry page url, and try to find data-main attribute value as entries
   (function(){
     var /*pagePath = w.location.pathname,*/ loaderPath;
@@ -26,9 +37,13 @@
     loaderPath = getUrlPathname(loaderScript.src);
     // console.log('pagePath:', pagePath);
     // console.log('loaderPath:', loaderPath);
+
+    baseUrl = loaderPath.replace(__loaderUrlPath__, '');
     moduleUrl = loaderPath.replace(__loaderPath__, __moduleRoute__);
     // console.log('baseUrl:', baseUrl);
   })();
+
+
   function define(id, deps, factory) {
     var mod = modCache[id],
       factoryParamNames, requireMod,
@@ -38,6 +53,7 @@
       return mod.cache;
     }
     mod = {};
+    modCache[id] = mod;
     if (typeof deps === 'function') {
       factory = deps;
       deps = [];
@@ -57,11 +73,10 @@
           return depName === 'require' ? requireMod : requireMod(depName);
         }));
       }
-      
+
     } catch (err) {
       errHandler(err);
     }
-    modCache[id] = mod;
   }
   function loadModule(modNames) {
     var isArray = Array.isArray(modNames), unloadedModNames, modLen, loadPromise, loadJSPromise;
@@ -102,8 +117,18 @@
   define.amd = true;
   w.define = define;
   w.requireAsync = loadModule;
+
+  var resourceUrlReg = /(url\(\s*['"]?)([^)'"]+)(['"]?\s*\))/g;
+
   //setup predefined modules
   define('addStyle', function(){
+    function fixResourceUrl(content){
+      return content.replace(resourceUrlReg, _fixUrl);
+    }
+    function _fixUrl(m, open, url, close){
+      if(!isRelativeUrl(url)) return m;
+      return open+baseUrl + '/' + url + close;
+    }
     return function addStyle(styleStr){
       var head = document.getElementsByTagName('head')[0],
         style = document.createElement("style");
@@ -113,7 +138,7 @@
       // style.setAttribute("media", "only screen and (max-width : 1024px)")
 
       // WebKit hack :(
-      style.appendChild(document.createTextNode(styleStr));
+      style.appendChild(document.createTextNode(fixResourceUrl(styleStr)));
 
       head.appendChild(style);
     };
@@ -183,7 +208,7 @@
 
   function makeModRequestUrl(modNames) {
     var loadedMods = Object.keys(loadCache).filter(function(k) {
-      return loadCache[k] === 1;
+      return modCache[k] != null;
     });
     return moduleUrl + '?m=' + modNames.join(',') + (loadedMods.length ? ('&l=' + loadedMods.join(',')) : '');
   }
@@ -229,27 +254,15 @@
     return result;
   }
   function getUrlPathname(url){
-    var parser = document.createElement('a');
-    parser.href = url;
-    return parser.pathname;
+    return parseUri(url).pathname;
   }
 
-  // function relative(from, to){
-  //   var isSlashTail = from[from.length - 1] === '/';
-  //   var fromParts = from.split(/[\/\\\s]+/);
-  //   var toParts = to.split(/[\/\\\s]+/);
-  //   var i = 0 , l = Math.min(fromParts.length, toParts.length), p = i;
-  //   for(;i<l;i++){
-  //     if(fromParts[i] !== toParts[i]){
-  //       break;
-  //     }
-  //     p = i;
-  //   }
-  //   fromParts = fromParts.slice(p + 1).filter(Boolean).map(function(){return '..';});
-  //   if(!isSlashTail){
-  //     fromParts.pop();
-  //   }
-  //   toParts = toParts.slice(p + 1);
-  //   return (fromParts.length ? fromParts.join('/') : '.')  + '/' + toParts.join('/')
-  // }
-// })(window, window.Promise);
+
+  function isRelativeUrl(url){
+    var parsed = parseUri(url);
+    return !(
+        (url.indexOf('/') === 0) ||
+        (parsed.protocol === 'data') ||
+        (parsed.host)
+      );
+  }
