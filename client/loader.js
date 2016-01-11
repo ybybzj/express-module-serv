@@ -110,8 +110,14 @@
         delete loadCache[mn];
       });
       errHandler(err);
+      throw err;
     });
 
+    loadPromise.spread = function(fn){
+      return loadPromise.then(function(mods){
+          return isArray ? fn.apply(null, mods) : fn.call(null, mods);
+      });
+    };
     return loadPromise;
   }
   define.amd = true;
