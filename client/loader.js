@@ -96,7 +96,7 @@
       throw new Error('[Load Module]Invalid module names!');
     }
     unloadedModNames = modNames.filter(function(modName) {
-      return modCache[modName] == null && modeCache[modName + '/index'] == null &&  loadCache[modName] == null;
+      return modCache[modName] == null && modCache[modName + '/index'] == null &&  loadCache[modName] == null;
     });
     if (unloadedModNames.length > 0) {
       loadJSPromise = loadJS(makeModRequestUrl(unloadedModNames));
