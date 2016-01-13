@@ -79,6 +79,7 @@
     }
   }
   function loadModule(modNames) {
+    var resolveMod = resolveDepModule.bind(null, '', modCache);
     var isArray = Array.isArray(modNames), unloadedModNames, modLen, loadPromise, loadJSPromise;
     modNames = [].concat(modNames).filter(isNotEmptyStr).map(function(modName) {
       return modName.trim();
@@ -88,7 +89,7 @@
       throw new Error('[Load Module]Invalid module names!');
     }
     unloadedModNames = modNames.filter(function(modName) {
-      return modCache[modName] == null && loadCache[modName] == null;
+      return modCache[modName] == null && modCache[modName + '/index'] == null &&  loadCache[modName] == null;
     });
     if (unloadedModNames.length > 0) {
       loadJSPromise = loadJS(makeModRequestUrl(unloadedModNames));
@@ -102,9 +103,7 @@
           loadCache[mn] = 1;
         }
       });
-      return !isArray ? modCache[modNames[0]].cache : modNames.map(function(mn) {
-        return modCache[mn].cache;
-      });
+      return !isArray ? resolveMod(modNames[0]) : modNames.map(resolveMod);
     })['catch'](function(err) {
       unloadedModNames.forEach(function(mn) {
         delete loadCache[mn];
@@ -115,7 +114,7 @@
 
     loadPromise.spread = function(fn){
       return loadPromise.then(function(mods){
-          return isArray ? fn.apply(null, mods) : fn.call(null, mods);
+        return fn.apply(null, [].concat(mods));
       });
     };
     return loadPromise;
@@ -173,6 +172,9 @@
       dname = parentBase.join('/');
     }
     dmod = modCache[dname];
+    if(!dmod){
+      dmod = modCache[dname + '/index'];
+    }
     if (!dmod) {
       throw new Error("[Module Error] Could not find module: [" + dname + ']');
     }
