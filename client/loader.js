@@ -118,7 +118,11 @@
       });
       errHandler(err);
     });
-
+    loadPromise.spread = function(fn){
+      return loadPromise.then(function(mods){
+        return fn.apply(null, [].concat(mods));
+      });
+    };
     return loadPromise;
   }
   define.amd = true;
