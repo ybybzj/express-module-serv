@@ -162,7 +162,20 @@
       head.appendChild(style);
     };
   });
-  // console.log('dataMain:',dataMain);
+
+  define('url', function(){
+    function _url(url){
+      if(typeof url !== 'string' || url[0] !== '/'){
+        return url;
+      }
+      return baseUrl + url;
+    }
+
+    _url.parse = parseUri;
+    return _url;
+  });
+
+  define('loadJS', function(){ return loadJS; });
   if(dataMain){
     loadModule(dataMain);
   }
