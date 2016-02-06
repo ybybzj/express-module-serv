@@ -46,7 +46,6 @@
   })();
 
 
- 
   function define(id, deps, factory) {
     var mod = modCache[id],
       factoryParamNames, requireMod,
@@ -76,7 +75,10 @@
           return depName === 'require' ? requireMod : requireMod(depName);
         }));
       }
-
+      //legacy support
+      if(w.m && w.m.config && Object(mod.cache) === mod.cache && mod.cache.ctrl == null){
+        mod.cache.ctrl = config[id] || {};
+      }
     } catch (err) {
       errHandler(err);
     }
@@ -113,7 +115,6 @@
       });
       errHandler(err);
     });
-
     loadPromise.spread = function(fn){
       return loadPromise.then(function(mods){
         return fn.apply(null, [].concat(mods));
@@ -124,9 +125,9 @@
   define.amd = true;
   w.define = define;
   w.requireAsync = loadModule;
-
-  var resourceUrlReg = /(url\(\s*['"]?)([^)'"]+)(['"]?\s*\))/g;
   
+  var resourceUrlReg = /(url\(\s*['"]?)([^)'"]+)(['"]?\s*\))/g;
+
   //setup predefined modules
   define('addStyle', function(){
     function fixResourceUrl(content){
