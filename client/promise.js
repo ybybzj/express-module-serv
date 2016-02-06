@@ -303,5 +303,5 @@ if (typeof Promise !== 'function') {
     // w.Promise = Promise;
     return Promise;
   })();
-  w.Promise = Promise;
 }
+w.Promise = Promise;

@@ -1,4 +1,7 @@
-
+// (function(w, Promise) {
+  if (typeof Promise === 'undefined') {
+    throw new Error('Promise is undefined!');
+  }
   var modCache = {};
   var loadCache = {};
   var dataMain, baseUrl, moduleUrl;
@@ -37,13 +40,14 @@
     loaderPath = getUrlPathname(loaderScript.src);
     // console.log('pagePath:', pagePath);
     // console.log('loaderPath:', loaderPath);
-
     baseUrl = loaderPath.replace(__loaderUrlPath__, '');
     moduleUrl = loaderPath.replace(__loaderPath__, __moduleRoute__);
     // console.log('baseUrl:', baseUrl);
   })();
 
 
+  //legacy support
+  var config = {};
   function define(id, deps, factory) {
     var mod = modCache[id],
       factoryParamNames, requireMod,
@@ -73,7 +77,10 @@
           return depName === 'require' ? requireMod : requireMod(depName);
         }));
       }
-
+      //legacy support
+      if(w.m && w.m.config && Object(mod.cache) === mod.cache && mod.cache.ctrl == null){
+        mod.cache.ctrl = config[id] || {};
+      }
     } catch (err) {
       errHandler(err);
     }
@@ -109,9 +116,7 @@
         delete loadCache[mn];
       });
       errHandler(err);
-      throw err;
     });
-
     loadPromise.spread = function(fn){
       return loadPromise.then(function(mods){
         return fn.apply(null, [].concat(mods));
@@ -122,9 +127,18 @@
   define.amd = true;
   w.define = define;
   w.requireAsync = loadModule;
-
+  //legacy support
+  if(Object(w.m) === w.m){
+    w.m.define = define;
+    w.m.load = loadModule;
+    w.m.config = function(options) {
+      // if (options.baseUrl) baseUrl = options.baseUrl;
+      if(options.ctrl != null){
+        config = options.ctrl;
+      }
+    };
+  }
   var resourceUrlReg = /(url\(\s*['"]?)([^)'"]+)(['"]?\s*\))/g;
-
   //setup predefined modules
   define('addStyle', function(){
     function fixResourceUrl(content){
@@ -148,6 +162,7 @@
       head.appendChild(style);
     };
   });
+  // console.log('dataMain:',dataMain);
   if(dataMain){
     loadModule(dataMain);
   }
@@ -274,3 +289,25 @@
         (parsed.host)
       );
   }
+  // function relative(from, to){
+  //   var isSlashTail = from[from.length - 1] === '/';
+  //   var fromParts = from.split(/[\/\\\s]+/);
+  //   var toParts = to.split(/[\/\\\s]+/);
+  //   var i = 0 , l = Math.min(fromParts.length, toParts.length), p = i;
+  //   for(;i<l;i++){
+  //     if(fromParts[i] !== toParts[i]){
+  //       break;
+  //     }
+  //     p = i;
+  //   }
+  //   fromParts = fromParts.slice(p + 1).filter(Boolean).map(function(){return '..';});
+  //   if(!isSlashTail){
+  //     fromParts.pop();
+  //   }
+  //   toParts = toParts.slice(p + 1);
+  //   return (fromParts.length ? fromParts.join('/') : '.')  + '/' + toParts.join('/')
+  // }
+
+
+// })(window, window.Promise);
+
