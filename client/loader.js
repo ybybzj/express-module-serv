@@ -1,4 +1,7 @@
-
+// (function(w, Promise) {
+  if (typeof Promise === 'undefined') {
+    throw new Error('Promise is undefined!');
+  }
   var modCache = {};
   var loadCache = {};
   var dataMain, baseUrl, moduleUrl;
@@ -37,13 +40,13 @@
     loaderPath = getUrlPathname(loaderScript.src);
     // console.log('pagePath:', pagePath);
     // console.log('loaderPath:', loaderPath);
-
     baseUrl = loaderPath.replace(__loaderUrlPath__, '');
     moduleUrl = loaderPath.replace(__loaderPath__, __moduleRoute__);
     // console.log('baseUrl:', baseUrl);
   })();
 
 
+ 
   function define(id, deps, factory) {
     var mod = modCache[id],
       factoryParamNames, requireMod,
@@ -109,7 +112,6 @@
         delete loadCache[mn];
       });
       errHandler(err);
-      throw err;
     });
 
     loadPromise.spread = function(fn){
@@ -124,7 +126,7 @@
   w.requireAsync = loadModule;
 
   var resourceUrlReg = /(url\(\s*['"]?)([^)'"]+)(['"]?\s*\))/g;
-
+  
   //setup predefined modules
   define('addStyle', function(){
     function fixResourceUrl(content){
@@ -148,6 +150,20 @@
       head.appendChild(style);
     };
   });
+
+  define('url', function(){
+    function _url(url){
+      if(typeof url !== 'string' || url[0] !== '/'){
+        return url;
+      }
+      return baseUrl + url;
+    }
+
+    _url.parse = parseUri;
+    return _url;
+  });
+
+  define('loadJS', function(){ return loadJS; });
   if(dataMain){
     loadModule(dataMain);
   }
@@ -274,3 +290,25 @@
         (parsed.host)
       );
   }
+  // function relative(from, to){
+  //   var isSlashTail = from[from.length - 1] === '/';
+  //   var fromParts = from.split(/[\/\\\s]+/);
+  //   var toParts = to.split(/[\/\\\s]+/);
+  //   var i = 0 , l = Math.min(fromParts.length, toParts.length), p = i;
+  //   for(;i<l;i++){
+  //     if(fromParts[i] !== toParts[i]){
+  //       break;
+  //     }
+  //     p = i;
+  //   }
+  //   fromParts = fromParts.slice(p + 1).filter(Boolean).map(function(){return '..';});
+  //   if(!isSlashTail){
+  //     fromParts.pop();
+  //   }
+  //   toParts = toParts.slice(p + 1);
+  //   return (fromParts.length ? fromParts.join('/') : '.')  + '/' + toParts.join('/')
+  // }
+
+
+// })(window, window.Promise);
+
