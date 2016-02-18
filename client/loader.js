@@ -65,7 +65,8 @@
     try {
       if (factoryParamNames[0] === 'require' && factoryParamNames[1] === 'module') {
         module = {
-          exports: {}
+          exports: {},
+          id: id
         };
         exports = module.exports;
         factory.call(w, requireMod, module, exports);
@@ -74,10 +75,6 @@
         mod.cache = factory.apply(w, deps.map(function(depName){
           return depName === 'require' ? requireMod : requireMod(depName);
         }));
-      }
-      //legacy support
-      if(w.m && w.m.config && Object(mod.cache) === mod.cache && mod.cache.ctrl == null){
-        mod.cache.ctrl = config[id] || {};
       }
     } catch (err) {
       errHandler(err);
