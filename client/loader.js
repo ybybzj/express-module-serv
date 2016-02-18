@@ -67,7 +67,8 @@
     try {
       if (factoryParamNames[0] === 'require' && factoryParamNames[1] === 'module') {
         module = {
-          exports: {}
+          exports: {},
+          id: id
         };
         exports = module.exports;
         factory.call(w, requireMod, module, exports);
