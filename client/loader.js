@@ -230,7 +230,7 @@
 
   function makeModRequestUrl(modNames) {
     var loadedMods = Object.keys(loadCache).filter(function(k) {
-      return modCache[k] != null;
+      return modCache[k] != null || modCache[k + '/index'] != null;
     });
     return moduleUrl + '?m=' + modNames.join(',') + (loadedMods.length ? ('&l=' + loadedMods.join(',')) : '');
   }
