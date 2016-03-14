@@ -112,17 +112,22 @@
       });
       errHandler(err);
     });
-    loadPromise.spread = function(fn){
-      return loadPromise.then(function(mods){
-        return fn.apply(null, [].concat(mods));
-      });
-    };
+
     return loadPromise;
   }
   define.amd = true;
   w.define = define;
-  w.requireAsync = loadModule;
-  
+
+  w.requireAsync = function requireAsync(){
+    var p = Promise.resolve(loadModule.apply(null, arguments));
+    p.spread = function(fn){
+      return p.then(function(mods){
+        return fn.apply(null, [].concat(mods));
+      });
+    };
+
+    return p;
+  };
   var resourceUrlReg = /(url\(\s*['"]?)([^)'"]+)(['"]?\s*\))/g;
 
   //setup predefined modules
@@ -230,7 +235,7 @@
 
   function makeModRequestUrl(modNames) {
     var loadedMods = Object.keys(loadCache).filter(function(k) {
-      return modCache[k] != null || modCache[k + '/index'] != null;
+      return modCache[k] != null || modCache[k+'/index'] != null;
     });
     return moduleUrl + '?m=' + modNames.join(',') + (loadedMods.length ? ('&l=' + loadedMods.join(',')) : '');
   }
