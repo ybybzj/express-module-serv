@@ -118,16 +118,22 @@
       });
       errHandler(err);
     });
-    loadPromise.spread = function(fn){
-      return loadPromise.then(function(mods){
-        return fn.apply(null, [].concat(mods));
-      });
-    };
+
     return loadPromise;
   }
   define.amd = true;
   w.define = define;
-  w.requireAsync = loadModule;
+
+  w.requireAsync = function requireAsync(){
+    var p = Promise.resolve(loadModule.apply(null, arguments));
+    p.spread = function(fn){
+      return p.then(function(mods){
+        return fn.apply(null, [].concat(mods));
+      });
+    };
+
+    return p;
+  };
   //legacy support
   if(Object(w.m) === w.m){
     w.m.define = define;
