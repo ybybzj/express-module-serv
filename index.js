@@ -17,9 +17,9 @@ module.exports = function(app, options) {
   // pathSettings.base = pUtil.resolve(app.get('$boot_dir'), pathSettings.base);
 
   var transformers = [
-      maketransformer(resolverfns, defaulttransformers.addcomma),
-      maketransformer(resolverfns, defaulttransformers.wrapcmd),
-      maketransformer(resolverfns, defaulttransformers.wrapcss(transformersettings && transformersettings.csswrapper))
+      makeTransformer(resolverfns, defaulttransformers.addcomma),
+      makeTransformer(resolverfns, defaulttransformers.wrapcmd),
+      makeTransformer(resolverfns, defaulttransformers.wrapcss(transformersettings && transformersettings.csswrapper))
   ];
 
   if(extraTransformers.length){
