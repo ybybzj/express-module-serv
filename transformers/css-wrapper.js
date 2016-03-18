@@ -1,5 +1,5 @@
 var pUtil = require('path');
-var util = require('./util');
+var util = require('../lib/util');
 
 var resourceUrlReg = /(url\(\s*['"]?)([^)'"]+)(['"]?\s*\))/g;
 
