@@ -38,11 +38,8 @@
     }
     //prepare baseUrl
     loaderPath = getUrlPathname(loaderScript.src);
-    // console.log('pagePath:', pagePath);
-    // console.log('loaderPath:', loaderPath);
     baseUrl = loaderPath.replace(__loaderUrlPath__, '');
     moduleUrl = loaderPath.replace(__loaderPath__, __moduleRoute__);
-    // console.log('baseUrl:', baseUrl);
   })();
 
 
@@ -50,8 +47,7 @@
   var config = {};
   function define(id, deps, factory) {
     var mod = modCache[id],
-      factoryParamNames, requireMod,
-      module, exports;
+      requireMod, module, exports, modResult;
     if (mod != null) {
       console.warn('Module "' + id + '" is already defined!');
       return mod.cache;
@@ -62,22 +58,30 @@
       factory = deps;
       deps = [];
     }
-    factoryParamNames = getParamNames(factory);
     requireMod = resolveDepModule.bind(null, id, modCache);
     try {
-      if (factoryParamNames[0] === 'require' && factoryParamNames[1] === 'module') {
-        module = {
-          exports: {},
-          id: id
-        };
-        exports = module.exports;
-        factory.call(w, requireMod, module, exports);
-        mod.cache = module.exports;
-      } else {
-        mod.cache = factory.apply(w, deps.map(function(depName){
-          return depName === 'require' ? requireMod : requireMod(depName);
-        }));
-      }
+      module = {
+        exports: {},
+        id: id
+      };
+
+      exports = module.exports;
+
+      modResult = factory.apply(w, deps.map(function(depName){
+        switch(depName){
+          case 'r':
+            return requireMod;
+          case 'm':
+            return module;
+          case 'e':
+            return exports;
+          default:
+            return requireMod(depName);
+        }
+      }));
+
+      mod.cache = modResult === undefined ? module.exports : modResult;
+
       //legacy support
       if(w.m && w.m.config && Object(mod.cache) === mod.cache && mod.cache.ctrl == null){
         mod.cache.ctrl = config[id] || {};
@@ -290,12 +294,6 @@
   var STRIP_COMMENTS = /((\/\/.*$)|(\/\*[\s\S]*?\*\/))/mg;
   var ARGUMENT_NAMES = /([^\s,]+)/g;
 
-  function getParamNames(func) {
-    var fnStr = func.toString().replace(STRIP_COMMENTS, '');
-    var result = fnStr.slice(fnStr.indexOf('(') + 1, fnStr.indexOf(')')).match(ARGUMENT_NAMES);
-    if (result === null) result = [];
-    return result;
-  }
   function getUrlPathname(url){
     return parseUri(url).pathname;
   }
@@ -309,25 +307,6 @@
         (parsed.host)
       );
   }
-  // function relative(from, to){
-  //   var isSlashTail = from[from.length - 1] === '/';
-  //   var fromParts = from.split(/[\/\\\s]+/);
-  //   var toParts = to.split(/[\/\\\s]+/);
-  //   var i = 0 , l = Math.min(fromParts.length, toParts.length), p = i;
-  //   for(;i<l;i++){
-  //     if(fromParts[i] !== toParts[i]){
-  //       break;
-  //     }
-  //     p = i;
-  //   }
-  //   fromParts = fromParts.slice(p + 1).filter(Boolean).map(function(){return '..';});
-  //   if(!isSlashTail){
-  //     fromParts.pop();
-  //   }
-  //   toParts = toParts.slice(p + 1);
-  //   return (fromParts.length ? fromParts.join('/') : '.')  + '/' + toParts.join('/')
-  // }
-
 
 // })(window, window.Promise);
 
