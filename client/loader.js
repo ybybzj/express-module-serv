@@ -257,7 +257,7 @@
     var loadedMods = Object.keys(loadCache).filter(function(k) {
       return modCache[k] != null || modCache[k+'/index'] != null;
     });
-    return moduleUrl + '?m=' + modNames.join(',') + (loadedMods.length ? ('&l=' + loadedMods.join(',')) : '');
+    return moduleUrl + '?m=' + modNames.join(',') + (loadedMods.length ? ('&l=' + loadedMods.join(',')) : '') + '&_v_=' + __ver_;
   }
 
   function errHandler(err) {
