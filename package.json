@@ -18,9 +18,7 @@
   "author": "jackzj",
   "license": "MIT",
   "dependencies": {
-    "deps-stream": "^1.1.0"
-  },
-  "devDependencies": {
-    "uglify-js": "^2.6.1"
+    "deps-stream": "^1.1.0",
+    "uglify-js": "^2.6.2"
   }
 }
