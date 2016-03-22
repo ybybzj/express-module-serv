@@ -257,7 +257,11 @@
     var loadedMods = Object.keys(loadCache).filter(function(k) {
       return modCache[k] != null || modCache[k+'/index'] != null;
     });
-    return moduleUrl + '?m=' + modNames.join(',') + (loadedMods.length ? ('&l=' + loadedMods.join(',')) : '') + '&_v_=' + __ver_;
+    var reqUrl =  moduleUrl + '?m=' + modNames.join(',') + (loadedMods.length ? ('&l=' + loadedMods.join(',')) : '');
+    if(w.appVersion){
+      reqUrl = reqUrl + '&_v_=' + w.appVersion;
+    }
+    return reqUrl;
   }
 
   function errHandler(err) {

@@ -22,6 +22,6 @@ module.exports = function(app, options) {
       // resolveDepsCache: resolveCache,
       // contentCache: contentCache
   });
-  app.use(loaderPath, scriptsMiddleware(loaderPath, routePath, options.globals));
-  app.use(routePath, depsStreamMiddleware(streamMaker, resolverFns, options.reloadOnChange));
+  app.use(loaderPath, scriptsMiddleware(loaderPath, routePath, options));
+  app.use(routePath, depsStreamMiddleware(streamMaker, resolverFns, options));
 };
