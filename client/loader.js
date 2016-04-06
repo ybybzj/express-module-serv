@@ -130,7 +130,7 @@
 
   w.requireAsync = function requireAsync(){
     var args = [null];
-    var p = Promise.resolve().then(loadModule.bind.apply(loadModule, args.concat.aplly(args, arguments)));
+    var p = Promise.resolve().then(loadModule.bind.apply(loadModule, args.concat.apply(args, arguments)));
     p.spread = function(fn){
       return p.then(function(mods){
         return fn.apply(null, [].concat(mods));
