@@ -142,7 +142,7 @@
   //legacy support
   if(Object(w.m) === w.m){
     w.m.define = define;
-    w.m.load = loadModule;
+    w.m.load = w.requireAsync;
     w.m.config = function(options) {
       // if (options.baseUrl) baseUrl = options.baseUrl;
       if(options.ctrl != null){
