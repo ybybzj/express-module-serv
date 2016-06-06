@@ -18,7 +18,7 @@ Pass in express app instance and options to set up the service.
 var express = require('express');
 var moduleServ = require('express-module-serv');
 var app = express();
-moduleServ(app, {
+var options = {
   routePath: '/m', //default
   loaderPath: '/mloader.js', //default
   pathSettings: {
@@ -26,10 +26,38 @@ moduleServ(app, {
     base: __dirname + '/scripts',
     // optional prefix path settings
     path: {
-      css: __dirname + '/styles'
+      css: __dirname + '/styles' or '../styles' relative to `base`
     }
-  }
-});
+  },
+  debug: true, //default is false, skip minifying loader script
+
+  //optional, set globals on window
+  globals: {
+    version: '1.0'
+  },
+
+  cacheControlExpiration: 10800, //default 0, set duration for expiration in seconds
+
+  //default is true, set false in case you don't need rebuild when src file is updated, for example in production environment.
+  reloadOnChange: true
+};
+
+//customize transformers if you need support loading css or svg modules
+
+options.transformers = [
+  //support loading css files, requiring the similar settings as the static middleware needs
+  //for resource url correction
+  require('express-module-serv/transformers/css-wrapper')({
+    staticPath: __dirname + '/public',
+    routePath: '/'
+  }),
+  //support CommonJS standard
+  require('express-module-serv/transformers/cmd-wrapper')(),
+  //add comma and new line
+  require('express-module-serv/transformers/add-comma')()
+];
+
+moduleServ(app, options);
 //suppose the index.html is in "public" directory
 app.use(express.static(__dirname + '/public'));
 app.listen(3003);
@@ -65,7 +93,7 @@ module.exports = function add(a, b){
 };
 ```
 
-Dependency identifier can be absolute or relative to the dependent module, and will be resolved referring to `pathSettings`. 
+Dependency identifier can be absolute or relative to the dependent module, and will be resolved referring to `pathSettings`.
 
 
 
@@ -80,4 +108,4 @@ for define a amd module
 
 (deps) -> [Promise]
 
-require dependencies asynchronously 
+require dependencies asynchronously
