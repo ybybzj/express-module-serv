@@ -1,44 +1,7 @@
-var util = require('./util');
 var pUtil = require('path');
-var isCMDModule = util.isCMDModule;
+var util = require('../lib/util');
 
 var resourceUrlReg = /(url\(\s*['"]?)([^)'"]+)(['"]?\s*\))/g;
-
-var addComma = {
-  transformer: function addComma(fileObj) {
-    var content = fileObj.content;
-    content = content.replace(/([^;]);?\s*$/g, '$1;\n');
-    return {
-      path: fileObj.path,
-      content: content
-    };
-  }
-
-};
-
-
-var wrapCMD = {
-  filter: function(fileObj) {
-    var isJS = pUtil.extname(fileObj.path) === '.js';
-    if (!isJS) {
-      return false;
-    }
-    var content = fileObj.content;
-    if (!isCMDModule(content)) {
-      return false;
-    }
-    return true;
-
-  },
-  transformer: function _wrapCMD(fileObj, modId) {
-    var content = fileObj.content;
-    content = 'define(\'' + modId + '\',[\'r\',\'m\',\'e\'],function(require, module, exports){' + content + '});';
-    return {
-      path: fileObj.path,
-      content: content
-    };
-  }
-};
 
 var wrapCSS = function(options) {
   options = options || {};
@@ -79,8 +42,4 @@ function _resolveUrl(url, cssPath, staticPath, routePath) {
   return result;
 }
 
-module.exports = {
-  addComma: addComma,
-  wrapCMD: wrapCMD,
-  wrapCSS: wrapCSS
-};
+module.exports = wrapCSS;

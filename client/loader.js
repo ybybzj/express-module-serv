@@ -38,18 +38,16 @@
     }
     //prepare baseUrl
     loaderPath = getUrlPathname(loaderScript.src);
-    // console.log('pagePath:', pagePath);
-    // console.log('loaderPath:', loaderPath);
     baseUrl = loaderPath.replace(__loaderUrlPath__, '');
     moduleUrl = loaderPath.replace(__loaderPath__, __moduleRoute__);
-    // console.log('baseUrl:', baseUrl);
   })();
 
 
+  //legacy support
+  var config = {};
   function define(id, deps, factory) {
     var mod = modCache[id],
-      factoryParamNames, requireMod,
-      module, exports;
+      requireMod, module, exports, modResult;
     if (mod != null) {
       console.warn('Module "' + id + '" is already defined!');
       return mod.cache;
@@ -60,21 +58,33 @@
       factory = deps;
       deps = [];
     }
-    factoryParamNames = getParamNames(factory);
     requireMod = resolveDepModule.bind(null, id, modCache);
     try {
-      if (factoryParamNames[0] === 'require' && factoryParamNames[1] === 'module') {
-        module = {
-          exports: {},
-          id: id
-        };
-        exports = module.exports;
-        factory.call(w, requireMod, module, exports);
-        mod.cache = module.exports;
-      } else {
-        mod.cache = factory.apply(w, deps.map(function(depName){
-          return depName === 'require' ? requireMod : requireMod(depName);
-        }));
+      module = {
+        exports: {},
+        id: id
+      };
+
+      exports = module.exports;
+
+      modResult = factory.apply(w, deps.map(function(depName){
+        switch(depName){
+          case 'r':
+            return requireMod;
+          case 'm':
+            return module;
+          case 'e':
+            return exports;
+          default:
+            return requireMod(depName);
+        }
+      }));
+
+      mod.cache = modResult === undefined ? module.exports : modResult;
+
+      //legacy support
+      if(w.m && w.m.config && Object(mod.cache) === mod.cache && mod.cache.ctrl == null){
+        mod.cache.ctrl = config[id] || {};
       }
     } catch (err) {
       errHandler(err);
@@ -94,7 +104,7 @@
       return modCache[modName] == null && modCache[modName + '/index'] == null &&  loadCache[modName] == null;
     });
     if (unloadedModNames.length > 0) {
-      loadJSPromise = loadJS(makeModRequestUrl(unloadedModNames));
+      loadJSPromise = batchLoadJS(unloadedModNames);
       unloadedModNames.forEach(function(mn) {
         loadCache[mn] = loadJSPromise;
       });
@@ -119,7 +129,8 @@
   w.define = define;
 
   w.requireAsync = function requireAsync(){
-    var p = Promise.resolve(loadModule.apply(null, arguments));
+    var args = [null];
+    var p = Promise.resolve().then(loadModule.bind.apply(loadModule, args.concat.apply(args, arguments)));
     p.spread = function(fn){
       return p.then(function(mods){
         return fn.apply(null, [].concat(mods));
@@ -128,8 +139,18 @@
 
     return p;
   };
+  //legacy support
+  if(Object(w.m) === w.m){
+    w.m.define = define;
+    w.m.load = w.requireAsync;
+    w.m.config = function(options) {
+      // if (options.baseUrl) baseUrl = options.baseUrl;
+      if(options.ctrl != null){
+        config = options.ctrl;
+      }
+    };
+  }
   var resourceUrlReg = /(url\(\s*['"]?)([^)'"]+)(['"]?\s*\))/g;
-
   //setup predefined modules
   define('addStyle', function(){
     function fixResourceUrl(content){
@@ -167,9 +188,7 @@
   });
 
   define('loadJS', function(){ return loadJS; });
-  if(dataMain){
-    loadModule(dataMain);
-  }
+  
   //helpers
   function resolveDepModule(name, modCache, depName) {
     var parentBase, part, parts, _i, _len, dname, dmod;
@@ -198,6 +217,31 @@
       throw new Error("[Module Error] Could not find module: [" + dname + ']');
     }
     return dmod.cache;
+  }
+
+
+  var modsQueue = [];
+  var loadModTimer = null;
+  var _batchLoadPromise = null;
+  var _deferFn = null;
+  function batchLoadJS(modNames){
+    modsQueue.push.apply(modsQueue, [].concat(modNames).filter(Boolean));
+    if(loadModTimer != null){
+      clearTimeout(loadModTimer);
+    }
+    if(_batchLoadPromise == null){
+      _batchLoadPromise = new Promise(function(resolve, reject){
+        deferFn = function _deferFn(){
+          loadJS(makeModRequestUrl(dedup(modsQueue))).then(resolve)['catch'](reject);
+          modsQueue.length = 0;
+          loadModTimer = null;
+          _batchLoadPromise = null;
+          deferFn = null;
+        };
+      });
+    }
+    deferFn && (loadModTimer = setTimeout(deferFn, 10));
+    return _batchLoadPromise;
   }
 
   function loadJS(path) {
@@ -237,7 +281,11 @@
     var loadedMods = Object.keys(loadCache).filter(function(k) {
       return modCache[k] != null || modCache[k+'/index'] != null;
     });
-    return moduleUrl + '?m=' + modNames.join(',') + (loadedMods.length ? ('&l=' + loadedMods.join(',')) : '');
+    var reqUrl =  moduleUrl + '?m=' + modNames.join(',') + (loadedMods.length ? ('&l=' + loadedMods.join(',')) : '');
+    if(w.appVersion){
+      reqUrl = reqUrl + '&_v_=' + w.appVersion;
+    }
+    return reqUrl;
   }
 
   function errHandler(err) {
@@ -271,15 +319,7 @@
     });
     return dedup(result);
   }
-  var STRIP_COMMENTS = /((\/\/.*$)|(\/\*[\s\S]*?\*\/))/mg;
-  var ARGUMENT_NAMES = /([^\s,]+)/g;
 
-  function getParamNames(func) {
-    var fnStr = func.toString().replace(STRIP_COMMENTS, '');
-    var result = fnStr.slice(fnStr.indexOf('(') + 1, fnStr.indexOf(')')).match(ARGUMENT_NAMES);
-    if (result === null) result = [];
-    return result;
-  }
   function getUrlPathname(url){
     return parseUri(url).pathname;
   }
@@ -293,25 +333,9 @@
         (parsed.host)
       );
   }
-  // function relative(from, to){
-  //   var isSlashTail = from[from.length - 1] === '/';
-  //   var fromParts = from.split(/[\/\\\s]+/);
-  //   var toParts = to.split(/[\/\\\s]+/);
-  //   var i = 0 , l = Math.min(fromParts.length, toParts.length), p = i;
-  //   for(;i<l;i++){
-  //     if(fromParts[i] !== toParts[i]){
-  //       break;
-  //     }
-  //     p = i;
-  //   }
-  //   fromParts = fromParts.slice(p + 1).filter(Boolean).map(function(){return '..';});
-  //   if(!isSlashTail){
-  //     fromParts.pop();
-  //   }
-  //   toParts = toParts.slice(p + 1);
-  //   return (fromParts.length ? fromParts.join('/') : '.')  + '/' + toParts.join('/')
-  // }
-
-
+  //init load
+  if(dataMain){
+    loadModule(dataMain);
+  }
 // })(window, window.Promise);
 

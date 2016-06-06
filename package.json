@@ -1,12 +1,10 @@
 {
   "name": "express-module-serv",
-  "version": "2.5.5",
+  "version": "2.6.0",
   "description": "An express app booting module that sets up a frontend modular system service which supports AMD, CMD and UMD standards",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "uglify": "uglifyjs client/promise.js client/loader.js -o loader.min.js -c -m",
-    "prepublish": "npm run uglify"
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
@@ -21,9 +19,7 @@
   "license": "MIT",
   "dependencies": {
     "debug": "^2.2.0",
-    "deps-stream": "^1.0.5"
-  },
-  "devDependencies": {
-    "uglify-js": "^2.6.1"
+    "deps-stream": "^1.1.0",
+    "uglify-js": "^2.6.2"
   }
 }
