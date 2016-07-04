@@ -192,8 +192,18 @@
   define('loadJS', function(){ return loadJS; });
   
   //helpers
-  function resolveDepModule(name, modCache, depName) {
-    var parentBase, part, parts, _i, _len, dname, dmod;
+   function resolveDepModule(name, modCache, depName) {
+    var parentBase, part, parts, _i, _len, dname, dmod,
+      idx = depName.indexOf('../'), prefix;
+    if(idx === -1){
+      idx = depName.indexOf('./');
+    }
+
+    if(idx > 0){
+      prefix = depName.slice(0, idx);
+      depName = depName.slice(idx);
+    }
+
     if (depName.charAt(0) !== '.') {
       dname = depName;
     } else {
@@ -211,6 +221,8 @@
       }
       dname = parentBase.join('/');
     }
+
+    dname = prefix ? prefix + dname : dname;
     dmod = modCache[dname];
     if(!dmod){
       dmod = modCache[dname + '/index'];
