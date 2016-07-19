@@ -18,7 +18,7 @@
   })();
   //prepare baseUrl according to the entry page url, and try to find data-main attribute value as entries
   (function(){
-    var /*pagePath = w.location.pathname,*/ loaderPath;
+    var parsed, domain, loaderPath;
     var scripts = document.getElementsByTagName('script'),
       i, l = scripts.length, loaderScript, s;
     for(i = l-1; i >=0 ; i--){
@@ -37,9 +37,12 @@
       dataMain = dataMain.split(',').filter(Boolean).map(function(m){return m.trim();});
     }
     //prepare baseUrl
-    loaderPath = getUrlPathname(loaderScript.src);
-    baseUrl = loaderPath.replace(__loaderUrlPath__, '');
-    moduleUrl = loaderPath.replace(__loaderPath__, __moduleRoute__);
+    parsed = parseUri(loaderScript.src);
+    loaderPath = parsed.pathname;
+    domain = parsed.protocol + '://'+parsed.host + (parsed.port ? ':' + parsed.port : '');
+
+    baseUrl = domain + loaderPath.replace(__loaderUrlPath__, '');
+    moduleUrl = domain + loaderPath.replace(__loaderPath__, __moduleRoute__);
   })();
 
 
@@ -190,7 +193,7 @@
   });
 
   define('loadJS', function(){ return loadJS; });
-  
+
   //helpers
    function resolveDepModule(name, modCache, depName) {
     var parentBase, part, parts, _i, _len, dname, dmod,
@@ -334,9 +337,6 @@
     return dedup(result);
   }
 
-  function getUrlPathname(url){
-    return parseUri(url).pathname;
-  }
 
 
   function isRelativeUrl(url){
