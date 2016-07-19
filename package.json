@@ -19,7 +19,7 @@
   "license": "MIT",
   "dependencies": {
     "debug": "^2.2.0",
-    "deps-stream": "^1.1.0",
+    "deps-stream": "^1.1.1",
     "uglify-js": "^2.6.2"
   }
 }
