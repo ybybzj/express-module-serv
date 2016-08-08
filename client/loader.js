@@ -93,6 +93,11 @@
       errHandler(err);
     }
   }
+
+  function isUnloadedModName(modName){
+    return modCache[modName] == null && modCache[modName + '/index'] == null &&  loadCache[modName] == null;
+  }
+
   function loadModule(modNames) {
     var resolveMod = resolveDepModule.bind(null, '', modCache);
     var isArray = Array.isArray(modNames), unloadedModNames, modLen, loadPromise, loadJSPromise;
@@ -103,9 +108,7 @@
     if (modLen === 0) {
       throw new Error('[Load Module]Invalid module names!');
     }
-    unloadedModNames = modNames.filter(function(modName) {
-      return modCache[modName] == null && modCache[modName + '/index'] == null &&  loadCache[modName] == null;
-    });
+    unloadedModNames = modNames.filter(isUnloadedModName);
     if (unloadedModNames.length > 0) {
       loadJSPromise = batchLoadJS(unloadedModNames);
       unloadedModNames.forEach(function(mn) {
@@ -241,6 +244,7 @@
   var loadModTimer = null;
   var _batchLoadPromise = null;
   var _deferFn = null;
+
   function batchLoadJS(modNames){
     modsQueue.push.apply(modsQueue, [].concat(modNames).filter(Boolean));
     if(loadModTimer != null){
@@ -249,11 +253,18 @@
     if(_batchLoadPromise == null){
       _batchLoadPromise = new Promise(function(resolve, reject){
         deferFn = function _deferFn(){
-          loadJS(makeModRequestUrl(dedup(modsQueue))).then(resolve)['catch'](reject);
+          var requestMods = dedup(modsQueue, isUnloadedModName);
+
           modsQueue.length = 0;
           loadModTimer = null;
           _batchLoadPromise = null;
           deferFn = null;
+
+          if(requestMods.length){
+            loadJS(makeModRequestUrl(requestMods)).then(resolve)['catch'](reject);
+          }else{
+            resolve();
+          }
         };
       });
     }
@@ -315,9 +326,9 @@
     }
   }
 
-  function dedup(arr) {
+  function dedup(arr, filter) {
     return arr.reduce(function(m, item) {
-      if (!~m.indexOf(item)) {
+      if ((!~m.indexOf(item)) && (typeof filter !== 'function'|| filter(item))) {
         m.push(item);
       }
       return m;
