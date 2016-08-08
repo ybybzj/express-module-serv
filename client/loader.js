@@ -94,9 +94,12 @@
     }
   }
 
-  function isUnloadedModName(modName){
-    return modCache[modName] == null && modCache[modName + '/index'] == null &&  loadCache[modName] == null;
+  function unloadedModNameFilter(includeLoadCache, modName){
+    return modCache[modName] == null && modCache[modName + '/index'] == null && (!includeLoadCache || loadCache[modName] == null);
   }
+
+  var isUnloadedModName = unloadedModNameFilter.bind(null, true);
+  var isUnfinishedModName = unloadedModNameFilter.bind(null, false);
 
   function loadModule(modNames) {
     var resolveMod = resolveDepModule.bind(null, '', modCache);
@@ -253,7 +256,7 @@
     if(_batchLoadPromise == null){
       _batchLoadPromise = new Promise(function(resolve, reject){
         deferFn = function _deferFn(){
-          var requestMods = dedup(modsQueue, isUnloadedModName);
+          var requestMods = dedup(modsQueue, isUnfinishedModName);
 
           modsQueue.length = 0;
           loadModTimer = null;
