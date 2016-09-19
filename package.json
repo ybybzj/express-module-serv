@@ -1,6 +1,6 @@
 {
   "name": "express-module-serv",
-  "version": "2.8.0",
+  "version": "2.8.1",
   "description": "An express app booting module that sets up a frontend modular system service which supports AMD, CMD and UMD standards",
   "main": "index.js",
   "scripts": {
