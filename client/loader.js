@@ -286,21 +286,19 @@
     var head = doc.getElementsByTagName('head')[0];
     var script = doc.createElement('script');
     return new Promise(function(resolve, reject) {
-      script.src = path;
-      script.async = true;
       script.type = 'text/javascript';
       script.onload = function() {
-        script.onload = null;
-        head.removeChild(script);
+        script.onload = script.onerror = null;
         resolve();
       };
       script.onerror = function(e) {
-        script.onerror = null;
+        var err = new Error('[loadJS]script load failed!src: ' + script.src);
+        script.onerror = script.onload = null;
         head.removeChild(script);
-        var err = new Error('[loadJS]script load failed!');
-        err.src = e.target.src;
         reject(err);
       };
+      script.src = path;
+      script.async = true;
       head.appendChild(script);
     });
   }
