@@ -297,7 +297,9 @@
       script.onerror = function(e) {
         script.onerror = null;
         head.removeChild(script);
-        reject(e);
+        var err = new Error('[loadJS]script load failed!');
+        err.src = e.target.src;
+        reject(err);
       };
       head.appendChild(script);
     });
