@@ -38,7 +38,7 @@ function resolveResourceUrl(fileObj, options) {
 function _resolveUrl(url, cssPath, staticPath, routePath) {
   var resourcePath = pUtil.resolve(pUtil.dirname(cssPath), url);
   var result = util.unixfy(pUtil.join(routePath, pUtil.relative(staticPath, resourcePath)));
-  if (result.charAt(0) === '/') result = pUtil.join('.', result);
+  if (result.charAt(0) === '/') result = util.unixfy(pUtil.join('.', result));
   return result;
 }
 
