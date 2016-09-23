@@ -330,6 +330,7 @@
     if(typeof window.onerror === 'function'){
       window.onerror(err+'', window.location.href, 0, 0, err);
     }
+    throw err;
   }
 
   function dedup(arr, filter) {
