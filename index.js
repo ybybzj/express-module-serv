@@ -7,14 +7,15 @@ var makeTransformer = _.makeTransformer;
 var defaultTransformers = require('./lib/transformers');
 
 module.exports = function(app, options) {
+  options = options || {};
   var routePath = options.routePath || '/m',
     loaderPath = options.loaderPath || '/mloader.js',
     pathSettings = options.pathSettings,
     transformers = [].concat(options.transformers || defaultTransformers).filter(Boolean),
-    resolverFns = _.makeResolverFns(pathSettings);
+    resolverFns = _.makeResolverFns(pathSettings, options.defaultFileExtensions);
 
   transformers = transformers.map(function(exTrans) {
-    return makeTransformer(resolverFns, exTrans);
+    return makeTransformer(resolverFns, exTrans, options);
   });
 
   var streamMaker = createDepsStreamer({
@@ -26,3 +27,4 @@ module.exports = function(app, options) {
   app.use(loaderPath, scriptsMiddleware(loaderPath, routePath, options));
   app.use(routePath, depsStreamMiddleware(streamMaker, resolverFns, options));
 };
+

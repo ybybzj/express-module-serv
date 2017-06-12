@@ -6,9 +6,16 @@ var isCMDModule = util.isCMDModule;
 
 module.exports = function() {
   return {
-    filter: function(fileObj) {
-      var isJS = pUtil.extname(fileObj.path) === '.js';
-      if (!isJS) {
+    filter: function(fileObj, modSrvOptions) {
+      var defaultExtensions = [].concat(modSrvOptions.defaultFileExtensions).filter(Boolean).map(function(ext){
+       return ext.charAt(0) === '.'  ? ext : ('.' + ext);
+      });
+      if(defaultExtensions.length <= 0) defaultExtensions = ['.js'];
+
+      var isValid = defaultExtensions.some(function(ext){
+        return pUtil.extname(fileObj.path) === ext;
+      });
+      if (!isValid) {
         return false;
       }
       var content = fileObj.content;
@@ -28,3 +35,4 @@ module.exports = function() {
     }
   };
 };
+
