@@ -202,6 +202,7 @@
 
   //helpers
    function resolveDepModule(name, modCache, depName) {
+    depName = normalizeDepName(depName);
     var parentBase, part, parts, _i, _len, dname, dmod,
       idx = depName.indexOf('../'), prefix;
     if(idx === -1){
@@ -364,6 +365,14 @@
         (parsed.protocol === 'data') ||
         (parsed.host)
       );
+  }
+
+  function normalizeDepName(depName){
+    let extIdx = depName.lastIndexOf('.js');
+    if(extIdx > -1 && extIdx === depName.length - 3){
+      return depName.slice(0, extIdx);
+    }
+    return depName;
   }
   //init load
   if(dataMain){
