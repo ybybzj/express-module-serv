@@ -48,29 +48,54 @@
 
   //legacy support
   var config = {};
+  var _cached = {};
   function define(id, deps, factory) {
-    var mod = modCache[id],
-      requireMod, module, exports, modResult;
+    var mod = modCache[id];
     if (mod != null) {
       console.warn('Module "' + id + '" is already defined!');
-      return mod.cache;
+      return;
     }
-    mod = {};
-    modCache[id] = mod;
+
     if (typeof deps === 'function') {
       factory = deps;
       deps = [];
     }
-    requireMod = resolveDepModule.bind(null, id, modCache);
+
+    mod = {
+      resolved: false,
+      cache: null,
+      factory: factory,
+      deps: deps,
+      id: id
+    };
+    modCache[id] = mod;
+  }
+
+  function getModuleResult (mod) {
+   
+    if (mod && mod.resolved) {
+      return mod.cache;
+    }
+    if(_cached[mod.id]) {
+      throw new Error('circle dependency : ' + mod.id);
+    }
+    _cached[mod.id] = 1;
+    var requireMod, module, exports, modResult;
+    
+    requireMod = function(depName){
+      var resolvedMod = resolveDepModule(mod.id, modCache, depName);
+      return getModuleResult(resolvedMod);
+    };
+
     try {
       module = {
         exports: {},
-        id: id
+        id: mod.id
       };
 
       exports = module.exports;
 
-      modResult = factory.apply(w, deps.map(function(depName){
+      modResult = mod.factory.apply(w, mod.deps.map(function(depName){
         switch(depName){
           case 'r':
             return requireMod;
@@ -84,11 +109,13 @@
       }));
 
       mod.cache = modResult === undefined ? module.exports : modResult;
+      mod.resolved = true;
 
       //legacy support
       if(w.m && w.m.config && Object(mod.cache) === mod.cache && mod.cache.ctrl == null){
         mod.cache.ctrl = config[id] || {};
       }
+      return mod.cache;
     } catch (err) {
       errHandler(err);
     }
@@ -102,7 +129,10 @@
   var isUnfinishedModName = unloadedModNameFilter.bind(null, false);
 
   function loadModule(modNames) {
-    var resolveMod = resolveDepModule.bind(null, '', modCache);
+    function resolveMod(modName) {
+      var mod = resolveDepModule('', modCache, modName);
+      return getModuleResult(mod);
+    }
     var isArray = Array.isArray(modNames), unloadedModNames, modLen, loadPromise, loadJSPromise;
     modNames = [].concat(modNames).filter(isNotEmptyStr).map(function(modName) {
       return modName.trim();
@@ -240,7 +270,7 @@
     if (!dmod) {
       throw new Error("[Module Error] Could not find module: [" + dname + ']');
     }
-    return dmod.cache;
+    return dmod;
   }
 
 

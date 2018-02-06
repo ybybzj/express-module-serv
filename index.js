@@ -5,12 +5,16 @@ var scriptsMiddleware = require('./lib/scriptsMiddleware');
 var _ = require('./lib/util');
 var makeTransformer = _.makeTransformer;
 var defaultTransformers = require('./lib/transformers');
+var pUtil = require('path');
 
-module.exports = function(app, options) {
+function makeMiddlewares(options) {
   options = options || {};
   var routePath = options.routePath || '/m',
     loaderPath = options.loaderPath || '/mloader.js',
-    pathSettings = options.pathSettings,
+    pathSettings = options.pathSettings || {
+      base: pUtil.resolve(process.cwd(), './src')
+    },
+    bundleMappings = options.bundleMappings || {},
     transformers = [].concat(options.transformers || defaultTransformers).filter(Boolean),
     resolverFns = _.makeResolverFns(pathSettings, options);
 
@@ -25,14 +29,39 @@ module.exports = function(app, options) {
       // contentCache: contentCache
   });
 
-  if(!options.bundleMappings){
-    app.use(loaderPath, scriptsMiddleware(loaderPath, routePath, options));
-    app.use(routePath, depsStreamMiddleware(streamMaker, resolverFns, options));
-    return;
-  }
+  var result = [];
 
-  applyBundleMapping(app, options, streamMaker, resolverFns);
+  var bundlePaths = Object.keys(bundleMappings);
+  if(bundlePaths.length <= 0) {
+    result.push({
+      route: loaderPath,
+      middleware: scriptsMiddleware(loaderPath, routePath, options)
+    });
+    result.push({
+      route: routePath,
+      middleware: depsStreamMiddleware(streamMaker, resolverFns, options)
+    });
+  } else {
+    bundlePaths.forEach(function(rpath){
+      result.push({
+        route: rpath,
+        middleware: depsStreamMiddleware(streamMaker, resolverFns, options, rpath)
+      });
+    });
+  }
+  return result;
+}
+
+function serv(app, options) {
+  var middlewares = makeMiddlewares(options);
+  middlewares.forEach(function(mw){
+    app.use(mw.route, mw.middleware);
+  });
 };
+
+serv.makeMiddlewares = makeMiddlewares;
+
+module.exports = serv;
 
 /**
  * bundleMappings => {
