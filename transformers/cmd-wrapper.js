@@ -1,6 +1,6 @@
 var util = require('../lib/util');
 var pUtil = require('path');
-var isCMDModule = util.isCMDModule;
+var isAMDModule = util.isAMDModule;
 
 
 
@@ -19,7 +19,7 @@ module.exports = function() {
         return false;
       }
       var content = fileObj.content;
-      if (!isCMDModule(content)) {
+      if (isAMDModule(content)) {
         return false;
       }
       return true;
