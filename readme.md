@@ -23,9 +23,9 @@ var options = {
   loaderPath: '/mloader.js', //default
   pathSettings: {
     // requried
-    base: __dirname + '/scripts',
+    baseUrl: __dirname + '/scripts',
     // optional prefix path settings
-    path: {
+    paths: {
       css: __dirname + '/styles' or '../styles' relative to `base`
     }
   },
