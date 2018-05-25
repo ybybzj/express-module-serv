@@ -1,6 +1,6 @@
 {
   "name": "express-module-serv",
-  "version": "2.9.0",
+  "version": "2.9.1",
   "description": "An express app booting module that sets up a frontend modular system service which supports AMD, CMD and UMD standards",
   "main": "index.js",
   "scripts": {
@@ -18,8 +18,8 @@
   "author": "jackzj",
   "license": "MIT",
   "dependencies": {
-    "debug": "^2.2.0",
-    "deps-stream": "^1.1.1",
-    "uglify-js": "^2.6.2"
+    "debug": "2.2.0",
+    "deps-stream": "1.1.1",
+    "uglify-js": "2.6.2"
   }
 }
