@@ -22,12 +22,18 @@ function makeMiddlewares(options) {
     return makeTransformer(resolverFns, exTrans, options);
   });
 
-  var streamMaker = createDepsStreamer({
+  var depsStreamOpts = {
     transformers: transformers,
     depResolver: resolver(resolverFns)
       // resolveDepsCache: resolveCache,
       // contentCache: contentCache
-  });
+  }
+
+  if(options.contentCache) {
+    depsStreamOpts.contentCache = options.contentCache
+  }
+
+  var streamMaker = createDepsStreamer(depsStreamOpts);
 
   var result = [];
 
