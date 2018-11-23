@@ -25,8 +25,10 @@ module.exports = function() {
       return true;
 
     },
-    transformer: function _wrapCMD(fileObj, modId) {
+    transformer: function _wrapCMD(fileObj, modId, _modSrvOptions, resolverFns) {
       var content = fileObj.content;
+      content = util.swapRequiredModNames(content, 'require', modId, resolverFns)
+
       content = 'define(\'' + modId + '\',[\'r\',\'m\',\'e\'],function(require, module, exports){' + content + '});';
       return {
         path: fileObj.path,

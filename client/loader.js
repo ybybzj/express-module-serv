@@ -72,9 +72,8 @@ var parseUri = (function() {
   moduleUrl = domain + loaderPath.replace(__loaderPath__, __moduleRoute__)
 })()
 
-//legacy support
-var config = {}
 var _cached = {}
+
 function define(id, deps, factory) {
   var mod = modCache[id]
   if (mod != null) {
@@ -108,7 +107,7 @@ function getModuleResult(mod) {
   var requireMod, module, exports, modResult
 
   requireMod = function(depName) {
-    var resolvedMod = resolveDepModule(mod.id, modCache, depName)
+    var resolvedMod = resolveDepModule(modCache, depName)
     return getModuleResult(resolvedMod)
   }
 
@@ -139,15 +138,6 @@ function getModuleResult(mod) {
     mod.cache = modResult === undefined ? module.exports : modResult
     mod.resolved = true
 
-    //legacy support
-    if (
-      w.m &&
-      w.m.config &&
-      Object(mod.cache) === mod.cache &&
-      mod.cache.ctrl == null
-    ) {
-      mod.cache.ctrl = config[id] || {}
-    }
     return mod.cache
   } catch (err) {
     errHandler(err)
@@ -167,7 +157,7 @@ var isUnfinishedModName = unloadedModNameFilter.bind(null, false)
 
 function loadModule(modNames) {
   function resolveMod(modName) {
-    var mod = resolveDepModule('', modCache, modName)
+    var mod = resolveDepModule(modCache, modName)
     return getModuleResult(mod)
   }
   var isArray = Array.isArray(modNames),
@@ -226,17 +216,7 @@ w.requireAsync = function requireAsync() {
 
   return p
 }
-//legacy support
-if (Object(w.m) === w.m) {
-  w.m.define = define
-  w.m.load = w.requireAsync
-  w.m.config = function(options) {
-    // if (options.baseUrl) baseUrl = options.baseUrl;
-    if (options.ctrl != null) {
-      config = options.ctrl
-    }
-  }
-}
+
 var resourceUrlReg = /(url\(\s*['"]?)([^)'"]+)(['"]?\s*\))/g
 //setup predefined modules
 define('addStyle', function() {
@@ -279,58 +259,68 @@ define('loadJS', function() {
 })
 
 //helpers
-function resolveDepModule(name, modCache, orgDepName) {
-  depName = normalizeDepName(orgDepName)
-  var parentBase,
-    part,
-    parts,
-    _i,
-    _len,
-    dname,
-    dmod,
-    idx = depName.indexOf('../'),
-    prefix
-  if (idx === -1) {
-    idx = depName.indexOf('./')
-  }
-
-  if (idx > 0) {
-    prefix = depName.slice(0, idx)
-    depName = depName.slice(idx)
-  }
-
-  if (depName.charAt(0) !== '.') {
-    dname = depName
-  } else {
-    parts = depName.split('/')
-    parentBase = name.split('/').slice(0, -1)
-    for (_i = 0, _len = parts.length; _i < _len; _i++) {
-      part = parts[_i]
-      if (part === '..') {
-        parentBase.pop()
-      } else if (part === '.') {
-        continue
-      } else {
-        parentBase.push(part)
-      }
-    }
-    dname = parentBase.join('/')
-  }
-
-  dname = prefix ? prefix + dname : dname
-  dmod = modCache[dname]
+function resolveDepModule(modCache, dname){
+  var dmod = modCache[dname]
   if (!dmod) {
     dmod = modCache[dname + '/index']
-  }
-  if (!dmod) {
-    dname = name + '/' + orgDepName
-    dmod = modCache[dname]
   }
   if (!dmod) {
     throw new Error('[Module Error] Could not find module: [' + dname + ']')
   }
   return dmod
 }
+// function resolveDepModule(name, modCache, orgDepName) {
+//   depName = normalizeDepName(orgDepName)
+//   var parentBase,
+//     part,
+//     parts,
+//     _i,
+//     _len,
+//     dname,
+//     dmod,
+//     idx = depName.indexOf('../'),
+//     prefix
+//   if (idx === -1) {
+//     idx = depName.indexOf('./')
+//   }
+
+//   if (idx > 0) {
+//     prefix = depName.slice(0, idx)
+//     depName = depName.slice(idx)
+//   }
+
+//   if (depName.charAt(0) !== '.') {
+//     dname = depName
+//   } else {
+//     parts = depName.split('/')
+//     parentBase = name.split('/').slice(0, -1)
+//     for (_i = 0, _len = parts.length; _i < _len; _i++) {
+//       part = parts[_i]
+//       if (part === '..') {
+//         parentBase.pop()
+//       } else if (part === '.') {
+//         continue
+//       } else {
+//         parentBase.push(part)
+//       }
+//     }
+//     dname = parentBase.join('/')
+//   }
+
+//   dname = prefix ? prefix + dname : dname
+//   dmod = modCache[dname]
+//   if (!dmod) {
+//     dmod = modCache[dname + '/index']
+//   }
+//   if (!dmod) {
+//     dname = name + '/' + orgDepName
+//     dmod = modCache[dname]
+//   }
+//   if (!dmod) {
+//     throw new Error('[Module Error] Could not find module: [' + dname + ']')
+//   }
+//   return dmod
+// }
 
 var modsQueue = []
 var loadModTimer = null
@@ -457,13 +447,13 @@ function isRelativeUrl(url) {
   return !(url.indexOf('/') === 0 || parsed.protocol === 'data' || parsed.host)
 }
 
-function normalizeDepName(depName) {
-  let extIdx = depName.lastIndexOf('.js')
-  if (extIdx > -1 && extIdx === depName.length - 3) {
-    return depName.slice(0, extIdx)
-  }
-  return depName
-}
+// function normalizeDepName(depName) {
+//   let extIdx = depName.lastIndexOf('.js')
+//   if (extIdx > -1 && extIdx === depName.length - 3) {
+//     return depName.slice(0, extIdx)
+//   }
+//   return depName
+// }
 //init load
 if (dataMain) {
   loadModule(dataMain)

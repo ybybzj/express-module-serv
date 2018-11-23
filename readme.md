@@ -21,6 +21,10 @@ var app = express();
 var options = {
   routePath: '/m', //default
   loaderPath: '/mloader.js', //default
+  // ex. [".css", ".txt" ...], when module path's extension is not one of these 
+  // then use `defaultExtensions` to resolve its path
+  acceptExtensions: [], // default
+  defaultExtensions: ['js'], //default
   pathSettings: {
     // requried
     baseUrl: __dirname + '/scripts',
